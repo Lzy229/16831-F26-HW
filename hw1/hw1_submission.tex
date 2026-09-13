@@ -36,8 +36,8 @@
     \toprule
     Metric/Env & Ant-v2 & Humanoid-v2 & Walker2d-v2 & Hopper-v2 & HalfCheetah-v2 \\
     \midrule
-    Mean  & xxx & xxx & xxx & xxx & xxx \\
-    Std.  & xxx & xxx & xxx & xxx & xxx \\
+    Mean  & 4713.6533203125 & 10344.517578125 & 5566.845703125 & 3772.67041015625 & 4205.7783203125 \\
+    Std.  & 12.196533203125 & 20.9814453125 & 9.237548828125 & 1.9483642578125 & 83.038818359375 \\
     \bottomrule
   \end{tabular}
   \label{tab:p2}
@@ -49,11 +49,11 @@
   \caption{BC vs.\ expert return. List the environment you chose and the hyperparameters (network size, amount of data, training iterations, \texttt{eval\_batch\_size}, etc.) here.}
   \begin{tabular}{ccccc}
     \toprule
-    Env   & \multicolumn{2}{c}{Ant-v2} & \multicolumn{2}{c}{[Another Env]} \\
+    Env   & \multicolumn{2}{c}{Ant-v2} & \multicolumn{2}{c}{[Hopper-v2]} \\
     \midrule
     Metric & Mean  & Std.  & Mean  & Std. \\
-    Expert & xxx & xxx & xxx & xxx \\
-    BC    & xxx & xxx & xxx & xxx \\
+    Expert & 4713.6533203125 & 12.196533203125 & 3772.67041015625 & 1.9483642578125 \\
+    BC     & 4522.76904296875 & 193.19094848632812 & 1245.7635498046875 & 113.24816131591797 \\
     \bottomrule
   \end{tabular}
   \label{tab:p3}

@@ -47,6 +47,16 @@ def build_mlp(
 
     # TODO: return a MLP. This should be an instance of nn.Module
     # Note: nn.Sequential is an instance of nn.Module.
+    MLP = nn.Sequential()
+    MLP.add_module("dense_in", nn.Linear(input_size, size))
+    MLP.add_module("activatation_in", activation)
+    for i in range(n_layers-1):
+        MLP.add_module("dense" + str(i+1), nn.Linear(size, size))
+        MLP.add_module("activation" + str(i+1), activation)
+    MLP.add_module("dense_out", nn.Linear(size, output_size))
+    MLP.add_module("activation_out", output_activation)
+
+    return MLP
     raise NotImplementedError
 
 

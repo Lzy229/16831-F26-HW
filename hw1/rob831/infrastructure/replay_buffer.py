@@ -11,10 +11,10 @@ class ReplayBuffer(object):
         self.paths = []
 
         # store (concatenated) component arrays from each rollout
-        self.obs = None
-        self.acs = None
-        self.rews = None
-        self.next_obs = None
+        self.obs = None # observations
+        self.acs = None # actions
+        self.rews = None # rewards
+        self.next_obs = None # next_observations
         self.terminals = None
 
     def __len__(self):
@@ -26,11 +26,16 @@ class ReplayBuffer(object):
     def add_rollouts(self, paths, concat_rew=True):
 
         # add new rollouts into our list of rollouts
+        # paths are the paths to new rollouts.
         for path in paths:
             self.paths.append(path)
 
         # convert new rollouts into their component arrays, and append them onto
         # our arrays
+
+        for i in range(len(self.paths)):
+            print(self.paths[i])
+        
         observations, actions, rewards, next_observations, terminals = (
             convert_listofrollouts(paths, concat_rew))
 
@@ -41,6 +46,8 @@ class ReplayBuffer(object):
             self.next_obs = next_observations[-self.max_size:]
             self.terminals = terminals[-self.max_size:]
         else:
+            # concate together
+            import pdb; pdb.set_trace()
             self.obs = np.concatenate([self.obs, observations])[-self.max_size:]
             self.acs = np.concatenate([self.acs, actions])[-self.max_size:]
             if concat_rew:
@@ -76,8 +83,18 @@ class ReplayBuffer(object):
         ## HINT 1: use np.random.permutation to sample random indices
         ## HINT 2: return corresponding data points from each array (i.e., not different indices from each array)
         ## HINT 3: look at the sample_recent_data function below
+        total_size = self.obs.shape[0]
+        sample_idx = np.random.permutation(total_size)
 
-        return TODO, TODO, TODO, TODO, TODO
+        return(
+            self.obs[sample_idx][:batch_size],
+            self.acs[sample_idx][:batch_size],
+            self.rews[sample_idx][:batch_size],
+            self.next_obs[sample_idx][:batch_size],
+            self.terminals[sample_idx][:batch_size],
+        )
+
+        # return TODO, TODO, TODO, TODO, TODO
 
 
     def sample_recent_data(self, batch_size=1):
