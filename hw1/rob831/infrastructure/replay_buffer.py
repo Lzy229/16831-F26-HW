@@ -47,7 +47,7 @@ class ReplayBuffer(object):
             self.terminals = terminals[-self.max_size:]
         else:
             # concate together
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             self.obs = np.concatenate([self.obs, observations])[-self.max_size:]
             self.acs = np.concatenate([self.acs, actions])[-self.max_size:]
             if concat_rew:
