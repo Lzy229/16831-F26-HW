@@ -94,6 +94,13 @@
     | 10000 | 1433.8330078125 | 308.71466064453125 |
     - basically, when we get more training steps, we can result in a greater performance
 
+## Dagger
+### Ant-v2
+- the greatest performance of bc is parameters: `learning_rate = 4e-3`, `n_layers = 5`, `num_agent_train_steps_per_iter = 4000`
+- do dagger: dagger iterations
+    - 
 
-    
+
+### Hopper-v2
+- the greatest performance of bc is parameters: others are default, `num_agent_train_steps_per_iter = 7000`
 
