@@ -46,6 +46,13 @@ plt.plot(steps, means_of_expert, label="expert", color="red")
 
 plt.xlabel("Learning Iter")
 plt.ylabel("Mean Return")
+
+# for a,b in zip(steps, means_of_bc): 
+#     plt.text(a, b, str(b))
+
+# for a, b in zip(steps, means_of_expert):
+#     plt.annotate(str(b), (a, b), textcoords="offset points", xytext=(0, -12), ha='center', va='top')
+
 plt.legend()
 
 plt.show()
