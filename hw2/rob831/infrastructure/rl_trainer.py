@@ -156,7 +156,7 @@ class RL_Trainer(object):
     def collect_training_trajectories(self, itr, load_initial_expertdata, collect_policy, batch_size):
         # # TODO: get this from hw1
         # raise NotImplementedError
-        if itr == 0:
+        if itr == 0 and load_initial_expertdata:
             # the initial iteration, load the expert data
             print("\nLoading expert data at first iteration...")
 

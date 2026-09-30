@@ -88,8 +88,14 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
         # TODO: get this from hw1
-        observation = ptu.from_numpy(observation.astype(np.float32))
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+
+        observation = ptu.from_numpy(observation)
         action = self(observation)
+        action = action.sample() 
         return ptu.to_numpy(action)
         raise NotImplementedError
 
@@ -106,10 +112,20 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
         if self.discrete:
-            return self.logits_na(observation)
-
+            logits = self.logits_na(observation)
+            # print(distributions.constraints.simplex.check(logits))
+            actions_distribution = distributions.Categorical(logits=logits)
+            return actions_distribution
         else:
-            return self.mean_net(observation)
+            mean = self.mean_net(observation)
+            tril = torch.diag(torch.exp(self.logstd))
+            dim = mean.shape[0]
+            batch_tril = tril.repeat(dim, 1, 1)
+            actions_distribution = distributions.MultivariateNormal(
+                mean,
+                scale_tril=batch_tril
+            )
+            return actions_distribution
         raise NotImplementedError
 
 #####################################################
@@ -135,8 +151,20 @@ class MLPPolicyPG(MLPPolicy):
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
         # HINT4: use self.optimizer to optimize the loss. Remember to
             # 'zero_grad' first
+        
+        # update the policy
+        actions_distribution = self.forward(observations)
 
-        raise NotImplementedError
+        self.optimizer.zero_grad()
+
+        policy_loss = 0.0
+        policy_loss = torch.mean(-actions_distribution.log_prob(actions) * advantages)
+
+        policy_loss.backward()
+
+        self.optimizer.step()
+
+        # raise NotImplementedError
 
         if self.nn_baseline:
             ## TODO: update the neural network baseline using the q_values as
@@ -147,10 +175,24 @@ class MLPPolicyPG(MLPPolicy):
                 ## updating the baseline. Remember to 'zero_grad' first
             ## HINT2: You will need to convert the targets into a tensor using
                 ## ptu.from_numpy before using it in the loss
-            raise NotImplementedError
+            normalized_q = normalize(q_values, np.mean(q_values), np.std(q_values))
+
+            values_normalized = self.baseline(observations).squeeze(-1)
+
+
+            target_q = ptu.from_numpy(normalized_q)
+
+            self.baseline_optimizer.zero_grad()
+            base_loss = self.baseline_loss(values_normalized, target_q)
+            
+            base_loss.backward()
+            self.baseline_optimizer.step()
+
+            # raise NotImplementedError
 
         train_log = {
             'Training Loss': ptu.to_numpy(policy_loss),
+            # 'base_loss': ptu.to_numpy(base_loss)
         }
         return train_log
 

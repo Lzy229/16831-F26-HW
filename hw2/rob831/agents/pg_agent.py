@@ -13,7 +13,7 @@ class PGAgent(BaseAgent):
         # init vars
         self.env = env
         self.agent_params = agent_params
-        self.gamma = self.agent_params['gamma']
+        self.gamma = self.agent_params['gamma'] # discount factor 
         self.standardize_advantages = self.agent_params['standardize_advantages']
         self.nn_baseline = self.agent_params['nn_baseline']
         self.reward_to_go = self.agent_params['reward_to_go']
@@ -44,10 +44,15 @@ class PGAgent(BaseAgent):
         # return the train_log obtained from updating the policy
 
         # HINT1: use helper functions to compute qvals and advantages
+        q_vals = self.calculate_q_vals(rewards_list)
+        advantages = self.estimate_advantage(observations, rewards_list, q_vals, terminals)
+
         # HINT2: look at the MLPPolicyPG class for how to update the policy
             # and obtain a train_log
 
-        raise NotImplementedError
+        train_log = self.actor.update(observations, actions, advantages, q_vals)
+
+        # raise NotImplementedError
 
         return train_log
 
@@ -73,15 +78,24 @@ class PGAgent(BaseAgent):
         # HINT3: q_values should be a 1D numpy array where the indices correspond to the same
         # ordering as observations, actions, etc.
 
+        q_values = np.array([])
+
         if not self.reward_to_go:
             #use the whole traj for each timestep
-            raise NotImplementedError
+            for i in range(len(rewards_list)):
+                
+                q_values = np.concatenate([q_values, self._discounted_return(rewards_list[i])])
+
+            # raise NotImplementedError
 
         # Case 2: reward-to-go PG
         # Estimate Q^{pi}(s_t, a_t) by the discounted sum of rewards starting from t
         else:
-            raise NotImplementedError
+            for i in range(len(rewards_list)):
+                q_values = np.concatenate([q_values, self._discounted_cumsum(rewards_list[i])])
 
+            # raise NotImplementedError
+        # print(q_values.shape)
         return q_values  # return an array
 
     def estimate_advantage(self, obs, rewards_list, q_values, terminals):
@@ -102,15 +116,17 @@ class PGAgent(BaseAgent):
                 ## that the predictions have the same mean and standard deviation as
                 ## the current batch of q_values
 
-            raise NotImplementedError
-            values = TODO
+
+            # raise NotImplementedError
+            values = unnormalize(values_normalized, np.mean(q_values), np.std(q_values))
 
             if self.gae_lambda is not None:
                 ## append a dummy T+1 value for simpler recursive calculation
+                print("gae_lambda is not none")
                 values = np.append(values, [0])
 
                 ## combine rews_list into a single array
-                rewards = np.concatenate(rewards_list)
+                rewards = np.concatenate(rewards_list) # 
 
                 ## create empty numpy array to populate with GAE advantage
                 ## estimates, with dummy T+1 value for simpler recursive calculation
@@ -125,7 +141,17 @@ class PGAgent(BaseAgent):
                         ## 0 otherwise.
                     ## HINT 2: self.gae_lambda is the lambda value in the
                         ## GAE formula
-                    raise NotImplementedError
+                    if terminals[i] != 1:
+                        next_value = values[i+1]
+                    else:
+                        next_value = 0.0
+
+                    delta = rewards[i] + self.gamma * next_value - values[i]
+
+                    advantages[i] = delta + self.gamma * self.gae_lambda * advantages[i+1]
+
+                    
+                    # raise NotImplementedError
 
                 # remove dummy advantage
                 advantages = advantages[:-1]
@@ -133,20 +159,23 @@ class PGAgent(BaseAgent):
             else:
                 ## TODO: compute advantage estimates using q_values, and values as baselines
                 # raise NotImplementedError
-                advantages = TODO
+                advantages = q_values - values
+                # the definition of advantages
 
         # Else, just set the advantage to [Q]
         else:
             advantages = q_values.copy()
+            # print(advantages.shape)
 
         # Normalize the resulting advantages
         if self.standardize_advantages:
             ## TODO: standardize the advantages to have a mean of zero
             ## and a standard deviation of one
 
-            raise NotImplementedError
-            advantages = TODO
+            # raise NotImplementedError
+            advantages = normalize(advantages, np.mean(advantages), np.std(advantages))
 
+        # print(advantages.shape)
         return advantages
 
     #####################################################
@@ -172,8 +201,12 @@ class PGAgent(BaseAgent):
         """
 
         # TODO: create discounted_returns
-        raise NotImplementedError
+        q_vals = 0
+        for i in range(len(rewards)):
+            q_vals += pow(self.gamma, i) * rewards[i]
+        # raise NotImplementedError
 
+        discounted_returns = np.ones_like(rewards) * q_vals
         return discounted_returns
 
     def _discounted_cumsum(self, rewards):
@@ -186,6 +219,23 @@ class PGAgent(BaseAgent):
         # TODO: create `discounted_cumsums`
         # HINT: it is possible to write a vectorized solution, but a solution
             # using a for loop is also fine
-        raise NotImplementedError
 
-        return discounted_cumsums
+        # from scipy.linalg import toeplitz
+
+        # q_vals = np.ones_like(rewards) * self.gamma
+        # pow = np.arange(len(rewards))
+        # vector = np.power(q_vals, pow)
+
+        # first_col = [vector[0]] + [0] * (len(rewards) - 1)
+        # matrix = toeplitz(first_col, vector)
+
+        # discounted_cumsums = np.dot(matrix, rewards.T)
+
+        lenth = len(rewards)
+        discounted_cumsums = np.zeros(lenth + 1)
+        for i in reversed(range(len(rewards))):
+            discounted_cumsums[i] = rewards[i] + self.gamma * discounted_cumsums[i+1]
+
+        # raise NotImplementedError
+
+        return discounted_cumsums[: -1]

@@ -1,5 +1,6 @@
-hw1/rob831.egg-info
+*/rob831.egg-info
 /.vscode/
-hw1/data/
-hw1/rob831/*/__pycache__
+*/data/
+*/rob831/*/__pycache__
+*/rob831/__pycache__
 .DS_Store
