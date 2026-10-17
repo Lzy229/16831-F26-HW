@@ -183,7 +183,7 @@ class MLPPolicyPG(MLPPolicy):
             target_q = ptu.from_numpy(normalized_q)
 
             self.baseline_optimizer.zero_grad()
-            base_loss = self.baseline_loss(values_normalized, target_q)
+            base_loss = self.baseline_loss(target_q, values_normalized)
             
             base_loss.backward()
             self.baseline_optimizer.step()
