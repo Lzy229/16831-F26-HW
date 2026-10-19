@@ -50,3 +50,26 @@
 - based on currect states of observations, use the `q_net` to get the q_values
 - use the `argmax` to get the index of the highest value action for each observation
 
+## Actor_critic
+### run_actor_critic
+- define class `AC_Trainer`, call `run_traning_loop`
+- call `RL_trainer.run_training_loop`, call `train_agent`
+- in `train_agent`
+    - call `replay_buffer.sample()` to sample trajectories
+    - call `agent.train()` to do training, record the loss
+
+### Agent
+#### `train()`
+- update the critic, call `critic.update()` function
+
+#### Advantage
+- estimate the advantages using network
+
+
+### Critic
+- the network `critic_network`
+    - the input_dim is `ob_dim`, input observation
+    - the output_dim is 1, output the v(s)
+    - call `forward_np` to complete the process
+    - (batch_num, ob_dim) to (batch_num, 1)
+- 

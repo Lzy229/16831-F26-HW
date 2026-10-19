@@ -126,4 +126,20 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 class MLPPolicyAC(MLPPolicy):
     def update(self, observations, actions, adv_n=None):
         # TODO: update the policy and return the loss
+        
+        # import pdb; pdb.set_trace()
+        observations = ptu.from_numpy(observations)
+        actions = ptu.from_numpy(actions)
+        adv_n = ptu.from_numpy(adv_n)
+
+        actions_distribution = self.forward(observations)
+
+        loss = torch.sum(-actions_distribution.log_prob(actions) * adv_n)
+
+        self.optimizer.zero_grad()
+        loss.backward()
+
+        self.optimizer.step()
+
+        # loss = None
         return loss.item()
