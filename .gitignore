@@ -5,3 +5,7 @@
 */rob831/__pycache__
 .DS_Store
 */tex
+*/*/*/*/*/__pycache__
+*/*/*/*/__pycache__
+*/*/*/__pycache__
+*/*/__pycache__
