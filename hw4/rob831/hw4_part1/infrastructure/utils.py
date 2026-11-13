@@ -14,6 +14,7 @@ def calculate_mean_prediction_error(env, action_sequence, models, data_statistic
 
     # predicted
     ob = np.expand_dims(true_states[0],0)
+    # import pdb; pdb.set_trace()
     pred_states = []
     for ac in action_sequence:
         pred_states.append(ob)
@@ -56,6 +57,28 @@ def mean_squared_error(a, b):
 
 def sample_trajectory(env, policy, max_path_length, render=False):
 # TODO: get this from previous HW
+    obs = env.reset()
+    obses, acts, rews, nobses, terms, imgs = [], [], [], [], [], []
+    steps = 0
+    while True:
+
+        obses.append(obs)
+        act = policy.get_action(obs)
+        act = act[0]
+        acts.append(act)
+        nobs, rew, done, _ = env.step(act)
+        nobses.append(nobs)
+        rews.append(rew)
+        obs = nobs.copy()
+        steps += 1
+
+        if done or steps > max_path_length:
+            terms.append(1)
+            break
+        else:
+            terms.append(0)
+
+    return Path(obses, imgs, acts, rews, nobses, terms)
 
 def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False):
     """
@@ -63,6 +86,13 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, r
         until we have collected min_timesteps_per_batch steps
     """
     # TODO: get this from previous HW
+    timesteps_this_batch = 0
+    paths = []
+    while timesteps_this_batch < min_timesteps_per_batch:
+        path = sample_trajectory(env, policy, max_path_length, render)
+        paths.append(path)
+        timesteps_this_batch += get_pathlength(path)
+        print('sampled {}/{} timesteps'.format(timesteps_this_batch, min_timesteps_per_batch), end='\r')
 
     return paths, timesteps_this_batch
 

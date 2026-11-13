@@ -41,6 +41,12 @@ class MPCPolicy(BasePolicy):
         # TODO(Q1) uniformly sample trajectories and return an array of
         # dimensions (num_sequences, horizon, self.ac_dim) in the range
         # [self.low, self.high]
+        random_action_sequences = np.zeros((num_sequences, horizon, self.ac_dim))
+        # import pdb; pdb.set_trace()
+        for sequence in range(num_sequences):
+            for hrz in range(horizon):
+                random_action_sequences[sequence, hrz] = self.env.action_space.sample()
+
         return random_action_sequences
 
     def evaluate_candidate_sequences(self, candidate_action_sequences, obs):
@@ -49,10 +55,15 @@ class MPCPolicy(BasePolicy):
         #
         # Then, return the mean predictions across all ensembles.
         # Hint: the return value should be an array of shape (N,)
-        for model in self.dyn_models: 
-            pass
+        rewards = np.zeros((self.N))
 
-        return TODO
+        for model in self.dyn_models: 
+            rewards += self.calculate_sum_of_rewards(obs, candidate_action_sequences, model)
+
+        # import pdb; pdb.set_trace()
+        rewards /= len(self.dyn_models)
+
+        return rewards
 
     def get_action(self, obs):
         if self.data_statistics is None:
@@ -65,8 +76,8 @@ class MPCPolicy(BasePolicy):
         predicted_rewards = self.evaluate_candidate_sequences(candidate_action_sequences, obs)
 
         # pick the action sequence and return the 1st element of that sequence
-        best_action_sequence = None  # TODO (Q2)
-        action_to_take = None  # TODO (Q2)
+        best_action_sequence = np.argmax(predicted_rewards)  # TODO (Q2)
+        action_to_take = candidate_action_sequences[best_action_sequence][0]  # TODO (Q2)
         return action_to_take[None]  # Unsqueeze the first index
 
     def calculate_sum_of_rewards(self, obs, candidate_action_sequences, model):
@@ -94,4 +105,16 @@ class MPCPolicy(BasePolicy):
         # Hint: Remember that the model can process observations and actions
         #       in batch, which can be much faster than looping through each
         #       action sequence.
+        rewards = np.zeros((self.N, self.horizon-1))
+
+        # import pdb; pdb.set_trace()
+        next_state = np.tile(obs, (self.N, 1))
+        for i in range(self.horizon-1):
+            # import pdb; pdb.set_trace()
+            reward_curr, _ = self.env.get_reward(next_state, candidate_action_sequences[:, i])
+            next_state = model.get_prediction(next_state, candidate_action_sequences[:, i], self.data_statistics)
+            rewards[:, i] = reward_curr
+
+        sum_of_rewards = np.sum(rewards, axis=1)
+        # import pdb; pdb.set_trace()
         return sum_of_rewards
